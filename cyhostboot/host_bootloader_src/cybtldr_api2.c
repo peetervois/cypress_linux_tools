@@ -1,9 +1,9 @@
 /*******************************************************************************
-* Copyright 2011-2012, Cypress Semiconductor Corporation.  All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions, 
-* disclaimers, and limitations in the end user license agreement accompanying 
-* the software package with which this file was provided.
-********************************************************************************/
+ * Copyright 2011-2012, Cypress Semiconductor Corporation.  All rights reserved.
+ * You may use this file only in accordance with the license, terms, conditions,
+ * disclaimers, and limitations in the end user license agreement accompanying
+ * the software package with which this file was provided.
+ ********************************************************************************/
 
 #include <string.h>
 #include "cybtldr_parse.h"
@@ -13,7 +13,7 @@
 
 unsigned char g_abort;
 
-int CyBtldr_RunAction(CyBtldr_Action action, const char* file, const unsigned char* securityKey, 
+int CyBtldr_RunAction(CyBtldr_Action action, const char* file, const unsigned char* securityKey,
     unsigned char appId, CyBtldr_CommunicationsData* comm, CyBtldr_ProgressUpdate* update)
 {
     const unsigned long BL_VER_SUPPORT_VERIFY = 0x010214; /* Support for full flash verify added in v2.20 of cy_boot */
@@ -35,7 +35,7 @@ int CyBtldr_RunAction(CyBtldr_Action action, const char* file, const unsigned ch
     unsigned int lineLen;
     int err;
     unsigned char bootloaderEntered = 0;
-	
+
     g_abort = 0;
 
     err = CyBtldr_OpenDataFile(file);
@@ -60,20 +60,20 @@ int CyBtldr_RunAction(CyBtldr_Action action, const char* file, const unsigned ch
 
         if ((CYRET_SUCCESS == err) && (appId != INVALID_APP))
         {
-			/* This will return error if bootloader is for single app */
+            /* This will return error if bootloader is for single app */
             err = CyBtldr_GetApplicationStatus(appId, &isValid, &isActive);
 
             /* Active app can be verified, but not programmed or erased */
             if (CYRET_SUCCESS == err && VERIFY != action && isActive)
-			{
-				/* This is multi app */
-				err = CYRET_ERR_ACTIVE;
-			}
-			else if (CYBTLDR_STAT_ERR_CMD == (err ^ (int)CYRET_ERR_BTLDR_MASK))
-			{
-				/* Single app - restore previous CYRET_SUCCESS */
-				err = CYRET_SUCCESS;
-			}
+            {
+                /* This is multi app */
+                err = CYRET_ERR_ACTIVE;
+            }
+            else if (CYBTLDR_STAT_ERR_CMD == (err ^ (int)CYRET_ERR_BTLDR_MASK))
+            {
+                /* Single app - restore previous CYRET_SUCCESS */
+                err = CYRET_SUCCESS;
+            }
         }
 
         if (CYRET_SUCCESS == err)
@@ -126,16 +126,16 @@ int CyBtldr_RunAction(CyBtldr_Action action, const char* file, const unsigned ch
                     if (CYRET_SUCCESS == err)
                     {
                         /* If valid set the active application to what was just programmed */
-						/* This is multi app */
+                        /* This is multi app */
                         err = (0 == isValid)
-                            ? CyBtldr_SetApplicationStatus(appId)
-                            : CYRET_ERR_CHECKSUM;
+                                ? CyBtldr_SetApplicationStatus(appId)
+                                    : CYRET_ERR_CHECKSUM;
                     }
-					else if (CYBTLDR_STAT_ERR_CMD == (err ^ (int)CYRET_ERR_BTLDR_MASK))
-					{
-						/* Single app - restore previous CYRET_SUCCESS */
-						err = CYRET_SUCCESS;
-					}
+                    else if (CYBTLDR_STAT_ERR_CMD == (err ^ (int)CYRET_ERR_BTLDR_MASK))
+                    {
+                        /* Single app - restore previous CYRET_SUCCESS */
+                        err = CYRET_SUCCESS;
+                    }
                 }
 
                 /* Verify that the entire application is valid */
@@ -160,13 +160,13 @@ int CyBtldr_Program(const char* file, const unsigned char* securityKey, unsigned
     return CyBtldr_RunAction(PROGRAM, file, securityKey, appId, comm, update);
 }
 
-int CyBtldr_Erase(const char* file, const unsigned char* securityKey, CyBtldr_CommunicationsData* comm, 
+int CyBtldr_Erase(const char* file, const unsigned char* securityKey, CyBtldr_CommunicationsData* comm,
     CyBtldr_ProgressUpdate* update)
 {
     return CyBtldr_RunAction(ERASE, file, securityKey, 0, comm, update);
 }
 
-int CyBtldr_Verify(const char* file, const unsigned char* securityKey, CyBtldr_CommunicationsData* comm, 
+int CyBtldr_Verify(const char* file, const unsigned char* securityKey, CyBtldr_CommunicationsData* comm,
     CyBtldr_ProgressUpdate* update)
 {
     return CyBtldr_RunAction(VERIFY, file, securityKey, 0, comm, update);

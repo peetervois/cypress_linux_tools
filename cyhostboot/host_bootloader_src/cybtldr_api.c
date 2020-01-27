@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Copyright 2011-2012, Cypress Semiconductor Corporation.  All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions, 
-* disclaimers, and limitations in the end user license agreement accompanying 
+* You may use this file only in accordance with the license, terms, conditions,
+* disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 ********************************************************************************/
 
@@ -78,6 +78,8 @@ int CyBtldr_ValidateRow(unsigned char arrayId, unsigned short rowNum)
     return err;
 }
 
+extern int repeat_counter;
+extern int max_wait_time_seconds;
 
 int CyBtldr_StartBootloadOperation(CyBtldr_CommunicationsData* comm, unsigned long expSiId,
             unsigned char expSiRev, unsigned long* blVer, const unsigned char* securityKeyBuf)
@@ -106,7 +108,12 @@ int CyBtldr_StartBootloadOperation(CyBtldr_CommunicationsData* comm, unsigned lo
         err = CyBtldr_CreateEnterBootLoaderCmd(inBuf, &inSize, &outSize, securityKeyBuf);
     }
     if (CYRET_SUCCESS == err) {
-        err = CyBtldr_TransferData(inBuf, inSize, outBuf, outSize);
+        do {
+            repeat_counter++;
+            err = CyBtldr_TransferData(inBuf, inSize, outBuf, outSize);
+        }
+        while( (1 == err) && (repeat_counter < (max_wait_time_seconds *10)) );
+        repeat_counter = 0;
     }
     if (CYRET_SUCCESS == err) {
         err = CyBtldr_ParseEnterBootLoaderCmdResult(outBuf, outSize, &siliconId, &siliconRev, blVer, &status);
@@ -211,7 +218,7 @@ int CyBtldr_ProgramRow(unsigned char arrayID, unsigned short rowNum, unsigned ch
     unsigned short subBufSize;
     unsigned char status = CYRET_SUCCESS;
     int err = CYRET_SUCCESS;
-    
+
     if (arrayID < MAX_FLASH_ARRAYS)
         err = CyBtldr_ValidateRow(arrayID, rowNum);
 
@@ -255,7 +262,7 @@ int CyBtldr_EraseRow(unsigned char arrayID, unsigned short rowNum)
     unsigned long outSize = 0;
     unsigned char status = CYRET_SUCCESS;
     int err = CYRET_SUCCESS;
-    
+
     if (arrayID < MAX_FLASH_ARRAYS)
         err = CyBtldr_ValidateRow(arrayID, rowNum);
     if (CYRET_SUCCESS == err)
@@ -279,7 +286,7 @@ int CyBtldr_VerifyRow(unsigned char arrayID, unsigned short rowNum, unsigned cha
     unsigned char rowChecksum = 0;
     unsigned char status = CYRET_SUCCESS;
     int err = CYRET_SUCCESS;
-    
+
     if (arrayID < MAX_FLASH_ARRAYS)
         err = CyBtldr_ValidateRow(arrayID, rowNum);
     if (CYRET_SUCCESS == err)

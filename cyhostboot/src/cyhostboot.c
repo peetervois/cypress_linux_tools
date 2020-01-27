@@ -104,6 +104,11 @@ static int serial_close()
 	return CYRET_SUCCESS;
 }
 
+int repeat_counter = 0;
+int max_wait_time_seconds = 60;
+int keep_doing = 1;
+
+
 static int serial_read(unsigned char *bytes, int size)
 {
 	struct timespec tp;
@@ -125,7 +130,7 @@ static int serial_read(unsigned char *bytes, int size)
 			break;
 
 		/* Check if there is data to read from serial */
-		poll_ret = poll(fds, 1, 0);
+		poll_ret = poll(fds, 1, 10);
 		if (poll_ret == 0) {
 			continue;
 		} else if (poll_ret < 0) {
@@ -180,7 +185,7 @@ static CyBtldr_CommunicationsData serial_coms = {
 
 static void serial_progress_update(unsigned char arrayId, unsigned short rowNum)
 {
-	printf("Progress: array_id %d, row_num %d\n", arrayId, rowNum);
+	printf("Progress: array_id %8d, row_num %8d\r", arrayId, rowNum);
 }
 
 unsigned char sec_key[KEY_BYTES];
@@ -220,13 +225,16 @@ int main(int argc, char **argv)
 		key = sec_key;
 	}
 
-	printf("Start %s on serial %s, baudrate %d\n", action_str, args_info.serial_arg, args_info.baudrate_arg);
-	ret = CyBtldr_RunAction(action, args_info.file_arg, key, 1, &serial_coms, serial_progress_update);
-	if (ret != CYRET_SUCCESS) {
-		printf("%s failed: %d\n", action_str, ret);
-		return 1;
+	do {
+	    printf("Start %s on serial %s, baudrate %d\n", action_str, args_info.serial_arg, args_info.baudrate_arg);
+	    ret = CyBtldr_RunAction(action, args_info.file_arg, key, 1, &serial_coms, serial_progress_update);
+	    if (ret != CYRET_SUCCESS) {
+	        printf("%s failed: %d\n", action_str, ret);
+	        return 1;
+	    }
+	    printf("\n%s OK !\n", action_str);
 	}
-	printf("%s OK !\n", action_str);
+	while( keep_doing );
 
 	return 0;
 }
